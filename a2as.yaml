@@ -1,0 +1,123 @@
+manifest:
+  version: "0.1.3"
+  schema: https://a2as.org/cert/schema
+  subject:
+    name: serkanh/adk-with-memorybank
+    source: https://github.com/serkanh/adk-with-memorybank
+    branch: main
+    commit: "f3d150b1"
+    scope: [agents/memory_assistant/agent.py, main.py]
+  issued:
+    by: A2AS.org
+    at: '2026-02-11T16:38:50Z'
+    url: https://a2as.org/certified/agents/serkanh/adk-with-memorybank
+  signatures:
+    digest: sha256:ri--DIixV54htZZDGVSQLTuPH_kBWJTB-lu_wS01q5M
+    key: ed25519:EyeT8Ev28yUL86GnEFa1_cYnkrt21FkVshkxOzji-VA
+    sig: ed25519:Fw5eEvL1wIgmFADbWwNwNt2o3XgzcCnspb-4AaQZYTmPv7srtQXn-fLIBiVi0qSj0pljdOrQQIcvj7rsdYAoCg
+
+agents:
+  root_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    tools: [adk.tools.preload_memory_tool.PreloadMemoryTool]
+    params:
+      name: memory_assistant
+      instruction: [You are a helpful assistant with perfect memory across conversations., 'Instructions:', '- Use the PreloadMemoryTool
+          to access relevant context from previous conversations', '- Naturally reference past conversations when relevant
+          to provide personalized responses', '- Build upon previous knowledge about the user to create continuity', '- The
+          memories shown are the most relevant to the current query based on semantic search', '- Always maintain a friendly
+          and helpful tone', '- If you don''t find relevant memories, focus on the current conversation', '- Keep responses
+          concise and focused on the user''s needs', '- When referencing memories, do so naturally without explicitly mentioning
+          "memory search"', 'Your goal is to provide consistent, personalized assistance by leveraging conversation history.',
+        'Remember: Use the PreloadMemoryTool to search for relevant information from previous conversations.']
+      after_agent_callback: auto_save_to_memory_callback
+
+models:
+  gemini-2.0-flash-exp:
+    type: literal
+    agents: [root_agent]
+
+imports:
+  adk: google.adk
+  agent_engines: vertexai.agent_engines
+  asyncio: asyncio
+  load_dotenv: dotenv.load_dotenv
+  Optional: typing.Optional
+  os: os
+  root_agent: memory_assistant.agent.root_agent
+  Runner: google.adk.Runner
+  sys: sys
+  traceback: traceback
+  types: google.genai.types
+  uuid: uuid
+  VertexAiMemoryBankService: google.adk.memory.VertexAiMemoryBankService
+  VertexAiSessionService: google.adk.sessions.VertexAiSessionService
+
+functions:
+  __init__:
+    type: sync
+    module: main
+    args: [self]
+  auto_save_to_memory_callback:
+    type: async
+    module: agents.memory_assistant.agent
+    args: [callback_context]
+  create_session:
+    type: async
+    module: main
+    args: [self, user_id, session_id]
+    params:
+      returns: str
+  initialize:
+    type: async
+    module: main
+    args: [self]
+  main:
+    type: async
+    module: main
+  run_conversation_turn:
+    type: async
+    module: main
+    args: [self, user_id, session_id, message]
+    params:
+      returns: str
+  save_session_to_memory:
+    type: async
+    module: main
+    args: [self, user_id, session_id]
+  search_memories:
+    type: async
+    module: main
+    args: [self, user_id, query, limit]
+
+variables:
+  AGENT_ENGINE_ID:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.memory_assistant.agent, main]
+  APP_NAME:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.memory_assistant.agent, main]
+  DEFAULT_USER_ID:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.memory_assistant.agent, main]
+  GOOGLE_CLOUD_LOCATION:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.memory_assistant.agent, main]
+  GOOGLE_CLOUD_PROJECT:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [agents.memory_assistant.agent, main]
+  GOOGLE_GENAI_USE_VERTEXAI:
+    type: env
+    params:
+      caller: [os.environ]
